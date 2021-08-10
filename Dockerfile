@@ -1,28 +1,20 @@
-ARG NODE_VERSION=14
+ARG GO_VERSION=1.16
 
-FROM node:${NODE_VERSION}-alpine AS builder
+FROM golang:${GO_VERSION}-alpine AS builder
 
 WORKDIR /src
 
-COPY package*.json .
-RUN npm ci --no-audit
+COPY . .
 
-COPY webpack.config.js .
-COPY tsconfig.json .
-COPY src ./src/
+RUN go build -ldflags "-w -s" -o jitsi-openid
 
-RUN npm run build
-
-FROM node:${NODE_VERSION}-alpine
-
-ENV PORT=3000
-ENV NODE_ENV=production
+FROM alpine
 
 WORKDIR /app
 
-COPY --from=builder /src/dist/index.js* .
+COPY --from=builder /src/jitsi-openid .
 COPY LICENSE .
 
-EXPOSE ${PORT}
+EXPOSE 8080
 
-ENTRYPOINT ["node", "index.js"]
+ENTRYPOINT ["jitsi-openid"]

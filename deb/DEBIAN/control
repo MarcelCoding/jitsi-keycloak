@@ -1,0 +1,5 @@
+Package: jitsi-openid
+Version: 2.0.0
+Architecture: amd64
+Maintainer: MarcelCoding <34819524+MarcelCoding@users.noreply.github.com>
+Description: Jitsi OpenID is an authentication adapter that allows Jitsi to authorize users with OpenID Connect.

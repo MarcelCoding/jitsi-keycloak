@@ -2,8 +2,8 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
-    tags: [ 'v*' ]
+    branches: [main]
+    tags: ["v*"]
   pull_request:
 
 env:
@@ -12,8 +12,44 @@ env:
   DOCKER_PLATFORMS: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+
+      - name: Prepare deb
+        run: |
+          cp -r deb jitsi-openid_2.0.0-1_amd64
+          mkdir -p jitsi-openid_2.0.0-1_amd64/usr/local/bin
+
+      - name: Build jitsi-openid
+        run: go build -ldflags "-w -s" -o jitsi-openid
+
+      - name: Upload jitsi-openid
+        uses: actions/upload-artifact@v2
+        with:
+          name: jitsi-openid
+          path: jitsi-openid
+
+      - name: Build deb
+        run: |
+          cp jitsi-openid jitsi-openid_2.0.0-1_amd64/usr/local/bin/jitsi-openid
+          dpkg-deb --build --root-owner-group jitsi-openid_2.0.0-1_amd64
+
+      - name: Upload deb
+        uses: actions/upload-artifact@v2
+        with:
+          name: jitsi-openid-deb
+          path: jitsi-openid_2.0.0-1_amd64.deb
+
   docker:
     runs-on: ubuntu-latest
+    needs: [build]
 
     steps:
       - uses: actions/checkout@v2
